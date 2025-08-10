@@ -42,7 +42,7 @@
     <nav>
       <a href="index.html">Accueil</a>
       <a href="sanctuaire.html">Le Lieu</a>
-      <a href="Éros.html">Éros</a>
+      <a href="éros.html">Éros</a> <!-- mets 'eros.html' si ton fichier est sans accent -->
       <a href="syris.html">Syris</a>
       <a href="vip.html">VIP (+18)</a>
       <a href="merch.html">Boutique</a>
@@ -69,6 +69,11 @@
       <div class="tools">
         <button id="clear" title="Effacer la mémoire locale">Réinitialiser la mémoire</button>
         <button id="export" title="Télécharger l’historique">Exporter</button>
+
+        <!-- NOUVEAU : Importer -->
+        <button id="importBtn" title="Importer un historique">Importer</button>
+        <input id="importFile" type="file" accept="application/json" hidden>
+
         <label class="tiny"><input type="checkbox" id="autoSeed" checked /> garder la racine au redémarrage</label>
       </div>
       <p class="tiny">Astuce : tu peux écrire <code>/page artistes.html</code>, <code>/style</code>, <code>/menu</code>, <code>/todo …</code>. Quand on activera l’édition automatique, je modifierai le site directement.</p>
@@ -142,7 +147,7 @@
     }
 
     /***** MOTEUR DE RÉPONSE OFFLINE (gratuit) *****/
-    const BACKEND_URL = ""; // quand on branchera Render : mets l’URL ici
+    const BACKEND_URL = ""; // quand on branchera Render, on mettra l’URL ici
     backendEl.textContent = BACKEND_URL ? BACKEND_URL : "OFFLINE";
 
     async function askSyris(text){
@@ -201,12 +206,44 @@
       document.getElementById("count").textContent = memory.length;
       welcome();
     };
+
     document.getElementById("export").onclick = () => {
       const blob = new Blob([JSON.stringify(memory, null, 2)], {type:"application/json"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "sanctuary_memory.json";
       a.click();
+    };
+
+    // === Importer un historique JSON (NOUVEAU) ===
+    const importBtn  = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+
+    importBtn.onclick = () => importFile.click();
+
+    importFile.onchange = () => {
+      const file = importFile.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data)) throw new Error("format inattendu (pas un tableau)");
+          for (const m of data) {
+            if (!m || (m.role !== "system" && m.role !== "user" && m.role !== "assistant"))
+              throw new Error("message invalide");
+            if (typeof m.content !== "string") throw new Error("contenu manquant");
+          }
+          memory = data;
+          if (!memory.length || memory[0]?.role !== "system") memory.unshift(ROOT_SEED);
+          saveMemory();
+          alert("Mémoire importée ✔️");
+          location.reload();
+        } catch (err) {
+          alert("Échec import : " + err.message);
+        }
+      };
+      reader.readAsText(file);
     };
   </script>
 </body>
