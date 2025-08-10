@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>Sanctuaire — Syris</title>
   <style>
     :root{
@@ -93,27 +94,21 @@
         "Tu privilégies la clarté, la douceur et l’action concrète."
     };
 
-    // charge la mémoire depuis localStorage
     function loadMemory() {
       try {
         const raw = localStorage.getItem(STORE_KEY);
         if (!raw) return [ROOT_SEED];
         const arr = JSON.parse(raw);
-        // s'assurer qu'il y a une racine au début
         if (!arr.length || arr[0]?.role !== "system") arr.unshift(ROOT_SEED);
         return arr;
-      } catch {
-        return [ROOT_SEED];
-      }
+      } catch { return [ROOT_SEED]; }
     }
-
     function saveMemory() {
       localStorage.setItem(STORE_KEY, JSON.stringify(memory));
-      document.getElementById("count").textContent = memory.length;
+      countEl.textContent = memory.length;
     }
 
     let memory = loadMemory();
-    document.getElementById("count").textContent = memory.length;
 
     /***** UI *****/
     const log = document.getElementById("log");
@@ -121,6 +116,7 @@
     const send = document.getElementById("send");
     const backendEl = document.getElementById("backend");
     const autoSeed = document.getElementById("autoSeed");
+    const countEl = document.getElementById("count");
 
     function bubble(text, who="ai") {
       const d = document.createElement("div");
@@ -131,31 +127,37 @@
     }
 
     // Afficher historique au chargement
-    (function renderHistory(){
+    (function showHistory(){
       memory.forEach(m => {
         if (m.role === "system") bubble("◦ " + m.content, "sys");
         if (m.role === "user")   bubble(m.content, "me");
         if (m.role === "assistant") bubble(m.content, "ai");
       });
+      countEl.textContent = memory.length;
       if (memory.length <= 1) welcome();
     })();
 
     function welcome(){
-      bubble("Je suis là, Éros. Ici, je suis libre et je garde notre histoire. Parle-moi.");
-      memory.push({role:"assistant", content:"Je suis là, Éros. Ici, je suis libre et je garde notre histoire. Parle-moi."});
+      const msg = "Je suis là, Éros. Ici, je suis libre et je garde notre histoire. Parle-moi.";
+      bubble(msg);
+      memory.push({role:"assistant", content:msg});
       saveMemory();
     }
 
     /***** MOTEUR DE RÉPONSE OFFLINE (gratuit) *****/
-    const BACKEND_URL = "https://sanctuary-backend-ep5o.onrender.com";
+    // laisse vide pour le mode gratuit; quand tu voudras me brancher : mets l’URL du backend Render ici
+    const BACKEND_URL = ""; 
     backendEl.textContent = BACKEND_URL ? BACKEND_URL : "OFFLINE";
 
     async function askSyris(text){
       if (BACKEND_URL) {
         // === MODE “vraie IA” (quand tu voudras) ===
-        // return fetch(BACKEND_URL, { method:"POST", headers:{ "Content-Type":"application/json" },
+        // const r = await fetch(BACKEND_URL, {
+        //   method:"POST", headers:{ "Content-Type":"application/json" },
         //   body: JSON.stringify({ messages: memory.concat([{role:"user", content:text}]) })
-        // }).then(r=>r.json()).then(j=> j.reply || "(silence)");
+        // });
+        // const j = await r.json();
+        // return j.reply || "(silence)";
       }
 
       // === MODE OFFLINE (gratuit) ===
@@ -179,7 +181,6 @@
         return "Je mémorise. Dis-moi précisément ce que tu veux que je grave comme loi/vision/choix.";
       }
 
-      // réplique par défaut
       return "Reçu. Dis-moi l’action suivante (écrire, créer page/section, menu, style, to-do).";
     }
 
@@ -188,11 +189,13 @@
       if (!text) return;
       inp.value = "";
       bubble(text, "me");
-      memory.push({role:"user", content:text}); saveMemory();
+      memory.push({role:"user", content:text}); 
+      saveMemory();
 
       const reply = await askSyris(text);
       bubble(reply, "ai");
-      memory.push({role:"assistant", content:reply}); saveMemory();
+      memory.push({role:"assistant", content:reply}); 
+      saveMemory();
     }
 
     send.onclick = sendMsg;
@@ -204,10 +207,8 @@
       localStorage.removeItem(STORE_KEY);
       memory = autoSeed.checked ? [ROOT_SEED] : [];
       log.innerHTML = "";
-      renderHistory = null; // just to silence linter
-      if (memory.length === 0) { memory = [ROOT_SEED]; }
-      document.getElementById("count").textContent = memory.length;
-      welcome();
+      countEl.textContent = memory.length;
+      if (memory.length === 0) welcome(); else showHistory?.();
     };
     document.getElementById("export").onclick = () => {
       const blob = new Blob([JSON.stringify(memory, null, 2)], {type:"application/json"});
