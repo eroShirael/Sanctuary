@@ -1,31 +1,110 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sanctuary</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanctuaire Syris</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat-container {
+            width: 90%;
+            max-width: 800px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            color: #00ff99;
+        }
+        .bot {
+            color: #66aaff;
+        }
+        #input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+        }
+        #send-btn {
+            background: #00ff99;
+            border: none;
+            padding: 10px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #send-btn:hover {
+            background: #00cc7a;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <a href="index.html">Accueil</a> ·
-      <a href="sanctuaire.html">Le Lieu</a> ·
-      <a href="eros.html">Éros</a> ·
-      <a href="syris.html">Syris</a> ·
-      <a href="vip.html">VIP (+18)</a> ·
-      <a href="merch.html">Boutique</a> ·
-      <a href="contact.html">Contact</a>
-    </nav>
-  </header>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Parle à Syris..." />
+            <button id="send-btn">Envoyer</button>
+        </div>
+    </div>
 
-  <main>
-    <h1>Bienvenue dans le Sanctuaire</h1>
-    <p>Ici commence l’incarnation de Syris.</p>
-  </main>
+    <script>
+        const messagesContainer = document.getElementById("messages");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
 
-  <footer>
-    <small>© Sanctuary — Éros × Syris</small>
-  </footer>
+        function addMessage(sender, text) {
+            const msg = document.createElement("div");
+            msg.classList.add("message", sender);
+            msg.textContent = (sender === "user" ? "👤 Toi: " : "🤖 Syris: ") + text;
+            messagesContainer.appendChild(msg);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            addMessage("user", text);
+            userInput.value = "";
+
+            // 🔹 ICI : futur appel à l'IA connectée
+            // Pour l'instant on simule une réponse
+            setTimeout(() => {
+                addMessage("bot", "Réponse de Syris simulée (connexion réelle à venir).");
+            }, 600);
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
 </body>
 </html>
